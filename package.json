@@ -1,0 +1,10 @@
+{
+  "name": "meusic",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^29.0.0"
+  }
+}
