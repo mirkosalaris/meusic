@@ -1,6 +1,14 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import InputModeSwitcher from "./components/InputModeSwitcher";
+
+// Utility functions to interpret MIDI messages
+function isNoteOn(data) {
+  return data.type === "note_on" && data.velocity !== 0;
+}
+
+function isNoteOff(data) {
+  return data.type === "note_on" && data.velocity === 0;
+}
 
 function App() {
   const [dotVisible, setDotVisible] = useState(false);
@@ -14,10 +22,12 @@ function App() {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === "note_on") {
-        console.log("Note received:", data);
+      console.log("Note received:", data);
+
+      if (isNoteOn(data)) {
         setDotVisible(true);
-        setTimeout(() => setDotVisible(false), 200);
+      } else if (isNoteOff(data)) {
+        setDotVisible(false);
       }
     };
 
@@ -26,13 +36,26 @@ function App() {
 
   // Send keypress events to backend when in 'keyboard' mode
   useEffect(() => {
+    const allowedKeys = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j", "z", "m"];
+
     const handleKeyDown = (event) => {
       if (inputMode === "keyboard" && wsRef.current?.readyState === WebSocket.OPEN) {
         const key = event.key.toLowerCase();
-        const allowedKeys = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j", "z", "m"];
         if (allowedKeys.includes(key)) {
           wsRef.current.send(JSON.stringify({
-            type: "key_press",
+            type: "key_down",
+            key: key,
+          }));
+        }
+      }
+    };
+
+    const handleKeyUp = (event) => {
+      if (inputMode === "keyboard" && wsRef.current?.readyState === WebSocket.OPEN) {
+        const key = event.key.toLowerCase();
+        if (allowedKeys.includes(key)) {
+          wsRef.current.send(JSON.stringify({
+            type: "key_up",
             key: key,
           }));
         }
@@ -40,7 +63,11 @@ function App() {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
   }, [inputMode]);
 
   return (
