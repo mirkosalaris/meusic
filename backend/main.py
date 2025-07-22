@@ -1,21 +1,22 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import asyncio
 from backend.midi import midi_listener
+from backend.keyboard import handle_ws_messages
 
+# FastAPI app
 app = FastAPI()
-clients = []
+clients = {}  # Dictionary to hold client-specific state
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    clients.append(websocket)
+    clients[websocket] = {"input_mode": "midi", "octave": 4}
     try:
         while True:
-            await asyncio.sleep(1)
-    except:
-        clients.remove(websocket)
+            await handle_ws_messages(websocket, clients)
+    except WebSocketDisconnect:
+        del clients[websocket]
 
-# Background MIDI task
 @app.on_event("startup")
 async def startup_event():
     asyncio.create_task(midi_listener(clients))

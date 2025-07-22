@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
+import React from 'react';
 
-const InputModeSwitcher = ({ socket }) => {
-  const [mode, setMode] = useState("midi");
-
+const InputModeSwitcher = ({ socket, inputMode, onModeChange }) => {
   const toggleMode = () => {
-    const newMode = mode === "midi" ? "keyboard" : "midi";
-    setMode(newMode);
+    const newMode = inputMode === "midi" ? "keyboard" : "midi";
+    onModeChange(newMode);
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ type: "mode_switch", input: newMode }));
     }
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <Button onClick={toggleMode} variant="outline">
-        Input: {mode.toUpperCase()}
-      </Button>
+    <div style={{ position: 'fixed', bottom: '1rem', right: '1rem', zIndex: 50 }}>
+      <button onClick={toggleMode} style={{
+        padding: '0.5rem 1rem',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        backgroundColor: '#f0f0f0',
+        cursor: 'pointer',
+      }}>
+        Input: {inputMode.toUpperCase()}
+      </button>
     </div>
   );
 };
