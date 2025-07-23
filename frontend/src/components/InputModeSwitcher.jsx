@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button } from './ui/button';
 
 const InputModeSwitcher = ({ socket, inputMode, onModeChange }) => {
   const toggleMode = () => {
@@ -12,12 +13,9 @@ const InputModeSwitcher = ({ socket, inputMode, onModeChange }) => {
 
 	return (
 			<div className="fixed bottom-4 right-4 z-50">
-				<button
-					onClick={toggleMode}
-					className="px-4 py-2 border border-gray-300 rounded bg-gray-100 hover:bg-gray-200 transition-colors"
-				>
+				<Button	onClick={toggleMode} variant="outline">
 					Input: {inputMode.toUpperCase()}
-				</button>
+				</Button>
 			</div>
 		);
 };
