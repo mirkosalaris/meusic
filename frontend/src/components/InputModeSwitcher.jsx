@@ -10,19 +10,16 @@ const InputModeSwitcher = ({ socket, inputMode, onModeChange }) => {
     }
   };
 
-  return (
-    <div style={{ position: 'fixed', bottom: '1rem', right: '1rem', zIndex: 50 }}>
-      <button onClick={toggleMode} style={{
-        padding: '0.5rem 1rem',
-        border: '1px solid #ccc',
-        borderRadius: '4px',
-        backgroundColor: '#f0f0f0',
-        cursor: 'pointer',
-      }}>
-        Input: {inputMode.toUpperCase()}
-      </button>
-    </div>
-  );
+	return (
+			<div className="fixed bottom-4 right-4 z-50">
+				<button
+					onClick={toggleMode}
+					className="px-4 py-2 border border-gray-300 rounded bg-gray-100 hover:bg-gray-200 transition-colors"
+				>
+					Input: {inputMode.toUpperCase()}
+				</button>
+			</div>
+		);
 };
 
 export default InputModeSwitcher;

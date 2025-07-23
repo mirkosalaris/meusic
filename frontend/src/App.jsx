@@ -73,14 +73,10 @@ function App() {
   }, [inputMode]);
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '100px' }}>
-      <h1>MIDI Listener</h1>
+    <div className="text-center mt-24">
+      <h1 className="text-3xl font-bold mb-6">MIDI Listener</h1>
       {dotVisible && (
-        <div style={{
-          width: '50px', height: '50px',
-          backgroundColor: 'green', borderRadius: '50%',
-          margin: 'auto'
-        }} />
+        <div className="w-12 h-12 bg-green-500 rounded-full mx-auto" />
       )}
       <InputModeSwitcher
         socket={socket}

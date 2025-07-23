@@ -19,7 +19,7 @@ clients = {}  # Dictionary to hold client-specific state
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    clients[websocket] = {"input_mode": "midi", "octave": 4}
+    clients[websocket] = {"input_mode": "keyboard", "octave": 4}
     try:
         while True:
             await handle_ws_messages(websocket, clients)
