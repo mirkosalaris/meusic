@@ -4,6 +4,7 @@ const InputModeSwitcher = ({ socket, inputMode, onModeChange }) => {
   const toggleMode = () => {
     const newMode = inputMode === "midi" ? "keyboard" : "midi";
     onModeChange(newMode);
+    console.log("Switching input mode to:", newMode);
     if (socket && socket.readyState === WebSocket.OPEN) {
       socket.send(JSON.stringify({ type: "mode_switch", input: newMode }));
     }

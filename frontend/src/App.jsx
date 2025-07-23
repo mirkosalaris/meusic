@@ -13,12 +13,12 @@ function isNoteOff(data) {
 function App() {
   const [dotVisible, setDotVisible] = useState(false);
   const [inputMode, setInputMode] = useState("midi");
-  const wsRef = useRef(null);
+  const [socket, setSocket] = useState(null);
 
   // Handle incoming messages (MIDI or keyboard events from backend)
   useEffect(() => {
     const ws = new WebSocket("ws://localhost:8000/ws");
-    wsRef.current = ws;
+    setSocket(ws);
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -39,10 +39,11 @@ function App() {
     const allowedKeys = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j", "z", "m"];
 
     const handleKeyDown = (event) => {
-      if (inputMode === "keyboard" && wsRef.current?.readyState === WebSocket.OPEN) {
+      console.log("Key down event:", event);
+      if (inputMode === "keyboard" && socket?.readyState === WebSocket.OPEN) {
         const key = event.key.toLowerCase();
         if (allowedKeys.includes(key)) {
-          wsRef.current.send(JSON.stringify({
+          socket.send(JSON.stringify({
             type: "key_down",
             key: key,
           }));
@@ -51,10 +52,11 @@ function App() {
     };
 
     const handleKeyUp = (event) => {
-      if (inputMode === "keyboard" && wsRef.current?.readyState === WebSocket.OPEN) {
+      console.log("Key up event:", event);
+      if (inputMode === "keyboard" && socket?.readyState === WebSocket.OPEN) {
         const key = event.key.toLowerCase();
         if (allowedKeys.includes(key)) {
-          wsRef.current.send(JSON.stringify({
+          socket.send(JSON.stringify({
             type: "key_up",
             key: key,
           }));
@@ -81,7 +83,7 @@ function App() {
         }} />
       )}
       <InputModeSwitcher
-        socket={wsRef.current}
+        socket={socket}
         inputMode={inputMode}
         onModeChange={setInputMode}
       />
