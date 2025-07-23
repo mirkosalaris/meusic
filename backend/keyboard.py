@@ -1,14 +1,17 @@
 import json
 from backend.state import convert_key_to_note
+import logging
 
 # Constants
 DEFAULT_KEYBOARD_VELOCITY = 127  # Standard velocity for key presses
 KEYBOARD_OFF_VELOCITY = 0  # Velocity for key releases
+logger = logging.getLogger(__name__)
 
 # Handles WebSocket messages from frontend: keyboard presses and mode switches
 async def handle_ws_messages(websocket, clients):
     msg = await websocket.receive_text()
     data = json.loads(msg)
+    logger.info(f"Data received from WebSocket: {data}")
 
     if data["type"] == "mode_switch":
         clients[websocket]["input_mode"] = data["input"]

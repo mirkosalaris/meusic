@@ -2,6 +2,15 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import asyncio
 from backend.midi import midi_listener
 from backend.keyboard import handle_ws_messages
+import logging
+
+# Configure logging globally
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s in %(module)s.py: %(message)s',
+)
+
+logger = logging.getLogger(__name__)
 
 # FastAPI app
 app = FastAPI()

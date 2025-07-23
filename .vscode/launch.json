@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "FastAPI: Backend (debug)",
+      "type": "debugpy",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "args": [
+        "backend.main:app",
+        "--reload"
+      ],
+      "pythonArgs": ["-Xfrozen_modules=off"],
+      "module": "uvicorn"
+    }
+  ]
+}
+

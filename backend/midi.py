@@ -1,12 +1,15 @@
 import mido
 import asyncio
 import threading
+import logging
+
+loger = logging.getLogger(__name__)
 
 def midi_worker(clients, loop):
     try:
         with mido.open_input() as inport:
             for msg in inport:
-                print("MIDI message received:", msg)
+                logger.info(f"MIDI message received: {msg}")
                 if msg.type == 'note_on':
                     # Submit coroutine to the main event loop
                     asyncio.run_coroutine_threadsafe(
