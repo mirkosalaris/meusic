@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import InputModeSwitcher from "./components/InputModeSwitcher";
+import ScoreRenderer from './components/ScoreRenderer';
 
 // Utility functions to interpret MIDI messages
 function isNoteOn(data) {
@@ -14,6 +15,7 @@ function App() {
   const [dotVisible, setDotVisible] = useState(false);
   const [inputMode, setInputMode] = useState("midi");
   const [socket, setSocket] = useState(null);
+  const scoreRef = useRef(null);
 
   // Handle incoming messages (MIDI or keyboard events from backend)
   useEffect(() => {
@@ -28,6 +30,10 @@ function App() {
         setDotVisible(true);
       } else if (isNoteOff(data)) {
         setDotVisible(false);
+      }
+      
+      if (scoreRef.current) {
+        scoreRef.current.handleMIDIMessage(data);
       }
     };
 
@@ -75,6 +81,7 @@ function App() {
   return (
     <div className="text-center mt-24">
       <h1 className="text-3xl font-bold mb-6">MIDI Listener</h1>
+      <ScoreRenderer ref={scoreRef} />
       {dotVisible && (
         <div className="w-12 h-12 bg-green-500 rounded-full mx-auto" />
       )}
