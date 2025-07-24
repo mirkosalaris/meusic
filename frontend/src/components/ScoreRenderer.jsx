@@ -46,13 +46,35 @@ const ScoreRenderer = forwardRef((_, ref) => {
     stave.addClef('treble').addTimeSignature('4/4');
     stave.setContext(context).draw();
 
-    const notes = Array.from(activeNotesRef.current)
-      .map((midi) => midiToVexflowNote(midi))
-      .filter(Boolean);
+    const activeMIDINotes = Array.from(activeNotesRef.current);
+		if (activeMIDINotes.length > 0) {
+			const sorted = activeMIDINotes.sort((a, b) => a - b);
+			const keys = [];
+			const accidentals = [];
 
-    if (notes.length > 0) {
-      Formatter.FormatAndDraw(context, stave, notes);
-    }
+			for (const midi of sorted) {
+				const name = MIDI_TO_NOTE[midi];
+				if (!name) continue;
+
+				const [letter, octave] = name.length === 3 ? [name.slice(0, 2), name[2]] : [name[0], name[1]];
+				keys.push(`${letter}/${octave}`);
+				accidentals.push(letter.includes("#") ? "#" : null);
+			}
+
+			const chord = new StaveNote({
+				keys,
+				duration: "q"
+			});
+
+			accidentals.forEach((acc, i) => {
+				if (acc) {
+					chord.addModifier(new Accidental(acc), i);
+				}
+			});
+
+			Formatter.FormatAndDraw(context, stave, [chord]);
+		}
+
 
     rendererRef.current = renderer;
     contextRef.current = context;
