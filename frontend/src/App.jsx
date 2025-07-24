@@ -42,13 +42,14 @@ function App() {
 
   // Send keypress events to backend when in 'keyboard' mode
   useEffect(() => {
-    const allowedKeys = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j", "z", "m"];
+    const noteKeys = ["a", "w", "s", "e", "d", "f", "t", "g", "y", "h", "u", "j"];
+    const octaveKeys = ["z", "m"];
 
     const handleKeyDown = (event) => {
       console.log("Key down event:", event);
       if (inputMode === "keyboard" && socket?.readyState === WebSocket.OPEN) {
         const key = event.key.toLowerCase();
-        if (allowedKeys.includes(key)) {
+        if (noteKeys.includes(key)) {
           socket.send(JSON.stringify({
             type: "key_down",
             key: key,
@@ -61,7 +62,7 @@ function App() {
       console.log("Key up event:", event);
       if (inputMode === "keyboard" && socket?.readyState === WebSocket.OPEN) {
         const key = event.key.toLowerCase();
-        if (allowedKeys.includes(key)) {
+        if (noteKeys.includes(key)) {
           socket.send(JSON.stringify({
             type: "key_up",
             key: key,
@@ -70,11 +71,26 @@ function App() {
       }
     };
 
+    const handleKeyPress = (event) => {
+      console.log("Key press event:", event);
+      if (inputMode === "keyboard" && socket?.readyState === WebSocket.OPEN) {
+        const key = event.key.toLowerCase();
+        if (octaveKeys.includes(key)) {
+          socket.send(JSON.stringify({
+            type: "key_press",
+            key: key,
+          }));
+        }
+      }
+    };
+
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("keypress", handleKeyPress);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("keypress", handleKeyPress);
     };
   }, [inputMode]);
 
