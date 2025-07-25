@@ -25,12 +25,13 @@ const ScoreRenderer = forwardRef((_, ref) => {
     container.innerHTML = '';
 
     const renderer = new Renderer(container, Renderer.Backends.SVG);
-    renderer.resize(800, 200);
     const context = renderer.getContext();
     context.setFont('Arial', 10, '').setBackgroundFillStyle('#fff');
+		context.scale(1.5, 1.5); // carefully chosen by trial and error
+    renderer.resize(350, 250); // carefully chosen by trial and error
 
-    const stave = new Stave(10, 40, 780);
-    stave.addClef('treble').addTimeSignature('4/4');
+    const stave = new Stave(0, 0, 150);
+    stave.addClef('treble').addTimeSignature('1/4');
     stave.setContext(context).draw();
 
     const activeMIDINotes = Array.from(activeNotesRef.current);
