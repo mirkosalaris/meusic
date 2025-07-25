@@ -10,7 +10,7 @@ def midi_worker(clients, loop):
         with mido.open_input() as inport:
             for msg in inport:
                 logger.info(f"MIDI message received: {msg}")
-                if msg.type == 'note_on':
+                if msg.type == 'note_on' or msg.type == 'note_off':
                     # Submit coroutine to the main event loop
                     asyncio.run_coroutine_threadsafe(
                         broadcast_midi_message(clients, msg),
