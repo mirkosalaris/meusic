@@ -15,7 +15,7 @@ KEY_NOTE_MAP = {
 # Convert a key press to MIDI note, adjusting octave
 def convert_key_to_note(key, client):
     if key in KEY_NOTE_MAP:
-        return client["octave"] * 12 + KEY_NOTE_MAP[key]
+        return (client["octave"] + 1)* 12 + KEY_NOTE_MAP[key]
     return None
 
 def changeOctave(key, client):
