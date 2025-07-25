@@ -13,19 +13,6 @@ const MIDI_TO_NOTE = {
   108: "c8"
 };
 
-function midiToVexflowNote(midi) {
-  const name = MIDI_TO_NOTE[midi];
-  if (!name) return null;
-  const [letter, octave] = name.length === 3 ? [name.slice(0, 2), name[2]] : [name[0], name[1]];
-  const key = [letter + '/' + octave];
-	console.log("Converted MIDI", midi, "to VexFlow note", key);
-  const note = new StaveNote({ keys: key, duration: "q" });
-	if (letter.includes("#")) {
-		note.addModifier(new Accidental("#"), 0);
-	}
-  return note;
-}
-
 const ScoreRenderer = forwardRef((_, ref) => {
   const containerRef = useRef(null);
   const activeNotesRef = useRef(new Set());
@@ -110,47 +97,3 @@ const ScoreRenderer = forwardRef((_, ref) => {
 
 export default ScoreRenderer;
 
-
-
-/*
-import React, { useEffect, useRef } from 'react';
-import {
-  Renderer,
-  Stave
-} from 'vexflow';
-
-const ScoreRenderer = () => {
-  const containerRef = useRef(null);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    // Clear previous render
-    containerRef.current.innerHTML = '';
-
-    const width = 800;
-    const height = 130; // things are chopped at 120 or below and any attempt at using renderer.scale() is not working greatly
-
-    const renderer = new Renderer(containerRef.current, Renderer.Backends.SVG);
-		
-    const context = renderer.getContext();
-    context.setFont('Arial', 10, '').setBackgroundFillStyle('#fff');
-		// renderer.resize(width, height);
-
-    const stave = new Stave(10, 40, width - 20);
-    stave.addClef('treble').addTimeSignature('4/4');
-    stave.setContext(context).draw();
-  }, []);
-
-  return (
-    <div className="w-full flex justify-center mt-8">
-      <div
-        ref={containerRef}
-        className="p-4 bg-white"
-      />
-    </div>
-  );
-};
-
-export default ScoreRenderer;
-*/
