@@ -13,7 +13,7 @@ function isNoteOff(data) {
 
 function App() {
   const [dotVisible, setDotVisible] = useState(false);
-  const [inputMode, setInputMode] = useState("midi");
+  const [inputMode, setInputMode] = useState("keyboard");
   const [socket, setSocket] = useState(null);
   const scoreRef = useRef(null);
 
@@ -92,7 +92,7 @@ function App() {
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("keypress", handleKeyPress);
     };
-  }, [inputMode]);
+  }, [inputMode, socket]);
 
   return (
     <div className="text-center mt-24">

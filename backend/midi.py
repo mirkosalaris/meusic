@@ -3,7 +3,7 @@ import asyncio
 import threading
 import logging
 
-loger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 def midi_worker(clients, loop):
     try:
