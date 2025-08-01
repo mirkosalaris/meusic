@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useImperativeHandle, forwardRef } from 'react';
-import { Renderer, Stave, StaveNote, Accidental, Formatter} from 'vexflow';
+import { Renderer, Stave, StaveNote, Accidental, Formatter, Dot} from 'vexflow';
 
 const MIDI_TO_NOTE = {
   21: "a0", 22: "a#0", 23: "b0",
@@ -48,38 +48,40 @@ const ScoreRenderer = forwardRef((_, ref) => {
     stave.addClef('treble').addTimeSignature(currentMeasure.time_signature || "1/4");
     stave.setContext(context).draw();
 
-    const activeMIDINotes = Array.from(activeNotesRef.current);
-		if (activeMIDINotes.length > 0) {
-			const sorted = activeMIDINotes.sort((a, b) => a - b);
-			const keys = [];
-			const accidentals = [];
+    const notes = currentMeasure.contents.map(entry => {
+      const keys = entry.notes.map(note => {
+        const [letter, octave] = note.length === 3 ? [note.slice(0, 2), note[2]] : [note[0], note[1]];
+        return `${letter}/${octave}`;
+      });
 
-			for (const midi of sorted) {
-				const name = MIDI_TO_NOTE[midi];
-				if (!name) continue;
+      const staveNote = new StaveNote({
+        keys,
+        duration: entry.duration,
+        dots: entry.dots || 0
+      });
+      console.log("keys:", keys)
+      keys.forEach((key, i) => {
+        const accidentalChar = key.length === 4 ? key[1] : null;
+        if (accidentalChar === "#" || accidentalChar === "b") {
+          staveNote.addModifier(new Accidental(accidentalChar), i);
+        }
+      });
 
-				const [letter, octave] = name.length === 3 ? [name.slice(0, 2), name[2]] : [name[0], name[1]];
-				keys.push(`${letter}/${octave}`);
-				accidentals.push(letter.includes("#") ? "#" : null);
-			}
+      for (let i = 0; i < (entry.dots || 0); i++) {
+        Dot.buildAndAttach([staveNote], { all: true });
+      }
 
-			const chord = new StaveNote({
-				keys,
-				duration: "q"
-			});
-
-			accidentals.forEach((acc, i) => {
-				if (acc) {
-					chord.addModifier(new Accidental(acc), i);
-				}
-			});
-
-			Formatter.FormatAndDraw(context, stave, [chord]);
-		}
-
-
+      return staveNote;
+    });
+    
     rendererRef.current = renderer;
     contextRef.current = context;
+
+    if (notes.length === 0) {
+      stave.setContext(context).draw();
+      return;
+    }
+    Formatter.FormatAndDraw(context, stave, notes);
   };
 
   useImperativeHandle(ref, () => ({
