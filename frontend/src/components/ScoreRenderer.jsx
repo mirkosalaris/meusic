@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Renderer, Stave, StaveNote, Accidental, Formatter} from 'vexflow';
 
 const MIDI_TO_NOTE = {
@@ -13,11 +13,23 @@ const MIDI_TO_NOTE = {
   108: "c8"
 };
 
+const emptyScore = {
+  version: "0.0",
+  title: "empty",
+  measures: [
+    {
+      time_signature: "1/4",
+      contents: []
+    }
+  ]
+};
+
 const ScoreRenderer = forwardRef((_, ref) => {
   const containerRef = useRef(null);
   const activeNotesRef = useRef(new Set());
   const rendererRef = useRef(null);
   const contextRef = useRef(null);
+  const [score, setScore] = useState(emptyScore);
 
   const drawScore = () => {
     const container = containerRef.current;
@@ -30,8 +42,10 @@ const ScoreRenderer = forwardRef((_, ref) => {
 		context.scale(1.5, 1.5); // carefully chosen by trial and error
     renderer.resize(350, 250); // carefully chosen by trial and error
 
+    const currentMeasure = score.measures?.[0] || { time_signature: "1/4", contents: [] };
+
     const stave = new Stave(0, 0, 150);
-    stave.addClef('treble').addTimeSignature('1/4');
+    stave.addClef('treble').addTimeSignature(currentMeasure.time_signature || "1/4");
     stave.setContext(context).draw();
 
     const activeMIDINotes = Array.from(activeNotesRef.current);
@@ -82,12 +96,15 @@ const ScoreRenderer = forwardRef((_, ref) => {
       }
 
       drawScore();
+    },
+    loadScore(newScore) {
+      setScore(newScore || emptyScore);
     }
   }));
 
   useEffect(() => {
     drawScore();
-  }, []);
+  }, [score]);
 
   return (
     <div className="w-full flex justify-center mt-8">

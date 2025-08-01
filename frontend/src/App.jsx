@@ -63,14 +63,19 @@ function App() {
   const handleScoreChange = (e) => {
     const scoreId = e.target.value;
     setSelectedScoreId(scoreId);
-    fetch(`http://localhost:8000/scores/${scoreId}`)
-      .then(res => res.json())
-      .then(score => {
-        if (scoreRef.current && score) {
-          scoreRef.current.loadScore(score);
-        }
-      })
-      .catch(err => console.error("Error loading score:", err));
+    if (scoreId === "") {
+      scoreRef.current.loadScore(null); // will trigger empty default
+      return;
+    } else {
+      fetch(`http://localhost:8000/scores/${scoreId}`)
+        .then(res => res.json())
+        .then(score => {
+          if (scoreRef.current && score) {
+            scoreRef.current.loadScore(score);
+          }
+        })
+        .catch(err => console.error("Error loading score:", err));
+    }
   };
 
 
