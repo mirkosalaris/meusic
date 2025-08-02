@@ -12,10 +12,21 @@ function isNoteOff(data) {
 }
 
 function App() {
-  const [dotVisible, setDotVisible] = useState(false);
-  const [inputMode, setInputMode] = useState("keyboard");
+  // WebSocket connection to the backend
   const [socket, setSocket] = useState(null);
+
+  // a green dot that appears when a note is played. Used for debug purposes
+  const [dotVisible, setDotVisible] = useState(false);
+
+  // input mode can be 'keyboard' (the computer's one) or 'midi'
+  const [inputMode, setInputMode] = useState("keyboard");
+
+  // reference to the ScoreRenderer component
   const scoreRef = useRef(null);
+
+  // list of available scores loaded from the backend
+  const [scores, setScores] = useState([]); 
+  const [selectedScoreId, setSelectedScoreId] = useState("");
 
   // Handle incoming messages (MIDI or keyboard events from backend)
   useEffect(() => {
@@ -39,6 +50,34 @@ function App() {
 
     return () => ws.close();
   }, []);
+
+  // At startup, fetch list of available scores from the backend
+  useEffect(() => {
+    fetch("http://localhost:8000/scores")
+      .then(res => res.json())
+      .then(setScores)
+      .catch(err => console.error("Error fetching scores:", err));
+  }, []);
+
+  // Load score when selected from the dropdown
+  const handleScoreChange = (e) => {
+    const scoreId = e.target.value;
+    setSelectedScoreId(scoreId);
+    if (scoreId === "") {
+      scoreRef.current.loadScore(null); // will trigger empty default
+      return;
+    } else {
+      fetch(`http://localhost:8000/scores/${scoreId}`)
+        .then(res => res.json())
+        .then(score => {
+          if (scoreRef.current && score) {
+            scoreRef.current.loadScore(score);
+          }
+        })
+        .catch(err => console.error("Error loading score:", err));
+    }
+  };
+
 
   // Send keypress events to backend when in 'keyboard' mode
   useEffect(() => {
@@ -97,6 +136,19 @@ function App() {
   return (
     <div className="text-center mt-24">
       <h1 className="text-3xl font-bold mb-6">MIDI Listener</h1>
+      <select
+        className="mb-4 p-2 border"
+        value={selectedScoreId}
+        onChange={handleScoreChange}
+      >
+        <option value="">-- Select a score --</option>
+        {scores.map(score => (
+          <option key={score.id} value={score.id}>
+            {score.title}
+          </option>
+        ))}
+      </select>
+
       <ScoreRenderer ref={scoreRef} />
       {dotVisible && (
         <div className="w-12 h-12 bg-green-500 rounded-full mx-auto" />

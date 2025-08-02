@@ -1,0 +1,15 @@
+{
+	"version": "0.0",
+  "title": "basic measure",
+  "measures": [
+    {
+      "time_signature": "4/4",
+      "contents": [
+        { "time": 0.0, "notes": ["c4"], "duration": "q" },
+        { "time": 1.0, "notes": ["d4"], "duration": "q", "dots": 1 },
+        { "time": 2.5, "notes": ["e4"], "duration": "q" },
+        { "time": 3.5, "notes": ["c4"], "duration": "8" }
+      ]
+    }
+  ]
+}
