@@ -27,8 +27,8 @@ const emptyScore = {
 const ScoreRenderer = forwardRef((_, ref) => {
   const containerRef = useRef(null);
   const activeNotesRef = useRef(new Set());
-  const rendererRef = useRef(null);
   const contextRef = useRef(null);
+  const staveRef = useRef(null);
   const [score, setScore] = useState(emptyScore);
 
   const drawScore = () => {
@@ -59,7 +59,7 @@ const ScoreRenderer = forwardRef((_, ref) => {
         duration: entry.duration,
         dots: entry.dots || 0
       });
-      console.log("keys:", keys)
+
       keys.forEach((key, i) => {
         const accidentalChar = key.length === 4 ? key[1] : null;
         if (accidentalChar === "#" || accidentalChar === "b") {
@@ -73,15 +73,53 @@ const ScoreRenderer = forwardRef((_, ref) => {
 
       return staveNote;
     });
-    
-    rendererRef.current = renderer;
+
     contextRef.current = context;
+    staveRef.current = stave;
 
     if (notes.length === 0) {
       stave.setContext(context).draw();
       return;
     }
     Formatter.FormatAndDraw(context, stave, notes);
+  };
+
+  const drawActiveNotes = () => {
+    const context = contextRef.current;
+    const stave = staveRef.current;
+    if (!context || !stave) return;
+    
+    const activeMIDINotes = Array.from(activeNotesRef.current);
+    if (activeMIDINotes.length === 0) return;
+
+    const sorted = activeMIDINotes.sort((a, b) => a - b);
+    const keys = [];
+    const accidentals = [];
+
+    for (const midi of sorted) {
+      const name = MIDI_TO_NOTE[midi];
+      if (!name) continue;
+
+      const [letter, octave] = name.length === 3 ? [name.slice(0, 2), name[2]] : [name[0], name[1]];
+      keys.push(`${letter}/${octave}`);
+      accidentals.push(letter.includes("#") ? "#" : null);
+    }
+
+    const chord = new StaveNote({
+      keys,
+      duration: 'q'
+    }).setStyle({ fillStyle: 'red', strokeStyle: 'red' }); // Distinct color for overlay
+
+    accidentals.forEach((acc, i) => {
+      if (acc) chord.addModifier(new Accidental(acc), i);
+    });
+
+    Formatter.FormatAndDraw(context, stave, [chord]);
+  };
+
+  const redrawAll = () => {
+    drawScore();
+    drawActiveNotes();
   };
 
   useImperativeHandle(ref, () => ({
@@ -97,7 +135,7 @@ const ScoreRenderer = forwardRef((_, ref) => {
         noteSet.add(msg.note);
       }
 
-      drawScore();
+      redrawAll();
     },
     loadScore(newScore) {
       setScore(newScore || emptyScore);
