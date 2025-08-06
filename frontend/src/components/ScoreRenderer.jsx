@@ -1,6 +1,11 @@
 import React, { useEffect, useState, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Renderer, Stave, StaveNote, Accidental, Formatter, Dot} from 'vexflow';
 
+const SCALE_FACTOR = 2.0;
+const MEASURE_WIDTH = 150;
+const MEASURE_PADDING = 2;
+const STAVE_HEIGHT = 250;
+
 const MIDI_TO_NOTE = {
   21: "a0", 22: "a#0", 23: "b0",
   24: "c1", 25: "c#1", 26: "d1", 27: "d#1", 28: "e1", 29: "f1", 30: "f#1", 31: "g1", 32: "g#1", 33: "a1", 34: "a#1", 35: "b1",
@@ -28,8 +33,9 @@ const ScoreRenderer = forwardRef((_, ref) => {
   const containerRef = useRef(null);
   const activeNotesRef = useRef(new Set());
   const contextRef = useRef(null);
-  const staveRef = useRef(null);
+  const activeStaveRef = useRef(null);
   const [score, setScore] = useState(emptyScore);
+  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
 
   const drawScore = () => {
     const container = containerRef.current;
@@ -39,54 +45,82 @@ const ScoreRenderer = forwardRef((_, ref) => {
     const renderer = new Renderer(container, Renderer.Backends.SVG);
     const context = renderer.getContext();
     context.setFont('Arial', 10, '').setBackgroundFillStyle('#fff');
-		context.scale(1.5, 1.5); // carefully chosen by trial and error
-    renderer.resize(350, 250); // carefully chosen by trial and error
 
-    const currentMeasure = score.measures?.[0] || { time_signature: "1/4", contents: [] };
+    // managing here the scale is a mess. Use css transform
+    context.scale(1, 1);
+  
+    const measureWidth = MEASURE_WIDTH;
+    const measurePadding = MEASURE_PADDING;
 
-    const stave = new Stave(0, 0, 150);
-    stave.addClef('treble').addTimeSignature(currentMeasure.time_signature || "1/4");
-    stave.setContext(context).draw();
+    // total width = all measures in a row
+    const totalWidth = score.measures.length * (measureWidth + measurePadding);
+    const staveHeight = STAVE_HEIGHT;
+    
+    let x = 0;
+    let y = 0;
+    
+    // Compute initial offset so first measure is centered in view
+    const firstMeasureOffset = Math.max(0, (viewportWidth / SCALE_FACTOR / 2) - (measureWidth / 2));
+    x = firstMeasureOffset;
 
-    const notes = currentMeasure.contents.map(entry => {
-      const keys = entry.notes.map(note => {
-        const [letter, octave] = note.length === 3 ? [note.slice(0, 2), note[2]] : [note[0], note[1]];
-        return `${letter}/${octave}`;
-      });
+    renderer.resize(totalWidth+firstMeasureOffset, staveHeight);
 
-      const staveNote = new StaveNote({
-        keys,
-        duration: entry.duration,
-        dots: entry.dots || 0
-      });
+    let previousTimeSig = null;
 
-      keys.forEach((key, i) => {
-        const accidentalChar = key.length === 4 ? key[1] : null;
-        if (accidentalChar === "#" || accidentalChar === "b") {
-          staveNote.addModifier(new Accidental(accidentalChar), i);
-        }
-      });
+    score.measures.forEach((measure, index) => {
+      const timeSig = measure.time_signature || previousTimeSig || '4/4';
 
-      for (let i = 0; i < (entry.dots || 0); i++) {
-        Dot.buildAndAttach([staveNote], { all: true });
+      const stave = new Stave(x, y, measureWidth);
+      if (index === 0) {
+        activeStaveRef.current = stave; // store the first stave as the one to draw on
+        stave.addClef('treble'); // only first measure gets clef
       }
+      if (timeSig != previousTimeSig) { // only add time signature if it changed
+        stave.addTimeSignature(timeSig);
+        previousTimeSig = timeSig;
+      }
+      stave.setContext(context).draw();
 
-      return staveNote;
+      const notes = measure.contents.map(entry => {
+        const keys = entry.notes.map(note => {
+          const [letter, octave] = note.length === 3 ? [note.slice(0, 2), note[2]] : [note[0], note[1]];
+          return `${letter}/${octave}`;
+        });
+
+        const staveNote = new StaveNote({
+          keys,
+          duration: entry.duration,
+          dots: entry.dots || 0
+        });
+
+        keys.forEach((key, i) => {
+          const accidentalChar = key.length === 4 ? key[1] : null;
+          if (accidentalChar === "#" || accidentalChar === "b") {
+            staveNote.addModifier(new Accidental(accidentalChar), i);
+          }
+        });
+
+        for (let i = 0; i < (entry.dots || 0); i++) {
+          Dot.buildAndAttach([staveNote], { all: true });
+        }
+
+        return staveNote;
+      });
+      
+      if (notes.length === 0) {
+        stave.setContext(context).draw();
+      } else {
+        Formatter.FormatAndDraw(context, stave, notes);
+      }
+      x += measureWidth + measurePadding; 
     });
 
     contextRef.current = context;
-    staveRef.current = stave;
-
-    if (notes.length === 0) {
-      stave.setContext(context).draw();
-      return;
-    }
-    Formatter.FormatAndDraw(context, stave, notes);
   };
 
   const drawActiveNotes = () => {
     const context = contextRef.current;
-    const stave = staveRef.current;
+    const stave = activeStaveRef.current;
     if (!context || !stave) return;
     
     const activeMIDINotes = Array.from(activeNotesRef.current);
@@ -144,11 +178,20 @@ const ScoreRenderer = forwardRef((_, ref) => {
 
   useEffect(() => {
     drawScore();
-  }, [score]);
+  }, [score, viewportWidth]);
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
-    <div className="w-full flex justify-center mt-8">
-      <div ref={containerRef} className="p-4 bg-white" />
+    <div className="bg-white overflow-x-auto">
+      <div ref={containerRef} style={{transform: `scale(${SCALE_FACTOR})`, transformOrigin: 'left top' }} />
     </div>
   );
 });
