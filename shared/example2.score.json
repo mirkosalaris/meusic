@@ -1,6 +1,7 @@
 {
-	"version": "0.0",
+	"version": "0.1",
   "title": "multiple measures with inherited time signature",
+  "bpm": 120,
   "measures": [
     {
       "time_signature": "3/4",

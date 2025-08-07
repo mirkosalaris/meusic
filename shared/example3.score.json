@@ -1,0 +1,85 @@
+{
+  "version": "0.1",
+  "title": "Sample Score",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": "4/4",
+      "key_signature": "Bb",
+      "contents": [
+        {
+          "time": 0,
+          "notes": ["D4"],
+          "duration": "q",
+          "dots": 1
+        },
+        {
+          "time": 1.5,
+          "notes": [],
+          "duration": "q"
+        },
+        {
+          "time": 2.5,
+          "notes": ["F4"],
+          "duration": "q",
+          "dots": 1
+        }
+      ]
+    },
+    {
+      "contents": [
+        {
+          "time": 0,
+          "notes": ["G4"],
+          "duration": "h"
+        },
+        {
+          "time": 1,
+          "notes": ["A4"],
+          "duration": "q",
+          "dots": 1
+        },
+        {
+          "time": 2.5,
+          "notes": [],
+          "duration": "8"
+        }
+      ]
+    },
+    {
+      "time_signature": "3/4",
+      "contents": [
+        {
+          "time": 0,
+          "notes": ["C5"],
+          "duration": "h"
+        },
+        {
+          "time": 2,
+          "notes": [],
+          "duration": "q"
+        }
+      ]
+    },
+    {
+      "time_signature": "4/4",
+      "contents": [
+        {
+          "time": 0,
+          "notes": ["Bb4"],
+          "duration": "q"
+        },
+        {
+          "time": 1,
+          "notes": ["D5"],
+          "duration": "q"
+        },
+        {
+          "time": 2,
+          "notes": ["F5"],
+          "duration": "h"
+        }
+      ]
+    }
+  ]
+}

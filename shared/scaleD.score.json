@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "title": "D Major Scale",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": null,
+      "free_time": true,
+      "key_signature": "D",
+      "contents": [
+        { "time": 0, "notes": ["D4"], "duration": "q" },
+        { "time": 1, "notes": ["E4"], "duration": "q" },
+        { "time": 2, "notes": ["F#4"], "duration": "q" },
+        { "time": 3, "notes": ["G4"], "duration": "q" },
+        { "time": 4, "notes": ["A4"], "duration": "q" },
+        { "time": 5, "notes": ["B4"], "duration": "q" },
+        { "time": 6, "notes": ["C#5"], "duration": "q" },
+        { "time": 7, "notes": ["D5"], "duration": "q" }
+      ]
+    }
+  ]
+}

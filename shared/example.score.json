@@ -1,6 +1,7 @@
 {
-	"version": "0.0",
+	"version": "0.1",
   "title": "basic measure",
+  "bpm": 120,
   "measures": [
     {
       "time_signature": "4/4",
