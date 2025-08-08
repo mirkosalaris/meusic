@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useImperativeHandle, forwardRef } from 'react';
-import { Renderer, Stave, StaveNote, Accidental, Formatter, Dot, Voice} from 'vexflow';
+import { Renderer, Stave, StaveNote, Accidental, Formatter, Dot, Voice } from 'vexflow';
 
 const SCALE_FACTOR = 2.0;
 const MEASURE_WIDTH = 150;
@@ -40,105 +40,112 @@ const ScoreRenderer = forwardRef((_, ref) => {
   const [score, setScore] = useState(emptyScore);
   const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
 
-  const drawScore = () => {
-    const container = containerRef.current;
-    if (!container) return;
-    container.innerHTML = '';
-
+  const initRenderer = (container, score) => {
     const renderer = new Renderer(container, Renderer.Backends.SVG);
     const context = renderer.getContext();
     context.setFont('Arial', 10, '').setBackgroundFillStyle('#fff');
 
     // managing here the scale is a mess. Use css transform
     context.scale(1, 1);
-  
-    const measureWidth = MEASURE_WIDTH;
-    const measurePadding = MEASURE_PADDING;
 
     // total width = all measures in a row
-    const totalWidth = score.measures.length * (measureWidth + measurePadding);
-    const staveHeight = STAVE_HEIGHT;
-    
-    let x = 0;
-    let y = 0;
-    
+    const totalWidth = score.measures.length * (MEASURE_WIDTH + MEASURE_PADDING);
+
     // Compute initial offset so first measure is centered in view
-    const firstMeasureOffset = Math.max(0, (viewportWidth / SCALE_FACTOR / 2) - (measureWidth / 2));
-    x = firstMeasureOffset;
+    const firstMeasureOffset = Math.max(0, (viewportWidth / SCALE_FACTOR / 2) - (MEASURE_WIDTH / 2));
 
-    renderer.resize(totalWidth+firstMeasureOffset, staveHeight);
+    renderer.resize(totalWidth + firstMeasureOffset, STAVE_HEIGHT);
+    return { renderer, context, firstMeasureOffset };
+  };
 
+  const createStave = (x, y, width, { index, measure, previousKeySig, previousTimeSig, context }) => {
+    const stave = new Stave(x, y, width);
+    if (index === 0) stave.addClef('treble');
+    // time and key signatures are inherited when not specified
+    if (measure.key_signature && measure.key_signature !== previousKeySig) {
+      stave.addKeySignature(measure.key_signature);
+    }
+    if (measure.time_signature && measure.time_signature !== previousTimeSig) {
+      stave.addTimeSignature(measure.time_signature);
+    }
+    stave.setContext(context).draw();
+    return stave;
+  };
+
+  const buildNotes = (measure) => {
+    return measure.contents.map(entry => {
+      const isRest = entry.notes.length === 0;
+      const duration = isRest ? `${entry.duration}r` : entry.duration;
+      const keys = isRest
+        ? ['b/4'] // dummy note for rests
+        : entry.notes.map(noteStr => {
+          // Parse note: e.g. "F#4" -> { letter: 'f', accidental: '#', octave: '4' }
+          const match = noteStr.match(/^([A-Ga-g])([#b]?)(\d)$/);
+          if (!match) throw new Error(`Invalid note format: ${noteStr}`);
+          const [, letter, accidental, octave] = match;
+          return `${letter.toLowerCase()}${accidental}/${octave}`;
+        });
+
+      const staveNote = new StaveNote({
+        keys,
+        duration: duration,
+        dots: entry.dots || 0
+      });
+
+      // Store accidental info in staveNote for applyAccidentals
+      if (!isRest) {
+        keys.forEach((key, i) => {
+          const accidentalChar = key.length === 4 ? key[1] : null;
+          if (accidentalChar === "#" || accidentalChar === "b") {
+            staveNote.addModifier(new Accidental(accidentalChar), i);
+          }
+        });
+      }
+      for (let i = 0; i < (entry.dots || 0); i++) {
+        Dot.buildAndAttach([staveNote], { all: true });
+      }
+      return staveNote;
+    });
+  };
+
+  const drawMeasure = ({ context, stave, notes, keySignature }) => {
+    if (notes.length > 0) {
+      const voice = new Voice();
+      // Disable checking because I can't get it to work with non 4/4 time signatures
+      voice.setMode(Voice.Mode.SOFT);
+      voice.addTickables(notes);
+
+      // Apply accidentals according to the key signature
+      Accidental.applyAccidentals([voice], keySignature);
+
+      new Formatter().joinVoices([voice]).format([voice], MEASURE_WIDTH - 20);
+      voice.draw(context, stave);
+    }
+  };
+
+  const drawScore = () => {
+    const container = containerRef.current;
+    if (!container) return;
+    container.innerHTML = '';
+
+    const { renderer: _, context, firstMeasureOffset } = initRenderer(container, score);
+
+    let offset = firstMeasureOffset;
     let previousTimeSig = null;
     let previousKeySig = null;
 
     score.measures.forEach((measure, index) => {
-      const timeSig = measure.time_signature || previousTimeSig || null;
+      const stave = createStave(offset, 0, MEASURE_WIDTH, { index, measure, previousKeySig, previousTimeSig, context });
+      // store the first stave as the one to draw played notes on
+      activeStaveRef.current = index === 0 ? stave : activeStaveRef.current;
 
-      const stave = new Stave(x, y, measureWidth);
-      if (index === 0) {
-        activeStaveRef.current = stave; // store the first stave as the one to draw on
-        stave.addClef('treble'); // only first measure gets clef
-      }
-      if (measure.key_signature && measure.key_signature !== previousKeySig) {
-        stave.addKeySignature(measure.key_signature);
-        previousKeySig = measure.key_signature;
-      }
-      if (timeSig != null && timeSig != previousTimeSig) { // only add time signature if it changed
-        stave.addTimeSignature(timeSig);
-        previousTimeSig = timeSig;
-      }
-      stave.setContext(context).draw();
+      previousKeySig = measure.key_signature || previousKeySig;
+      previousTimeSig = measure.time_signature || previousTimeSig;
 
-      const notes = measure.contents.map(entry => {
-        const isRest = entry.notes.length === 0;
-        const duration = isRest ? `${entry.duration}r` : entry.duration;
-        const keys = isRest
-          ? ['b/4'] // dummy note for rests
-          : entry.notes.map(noteStr => {
-              // Parse note: e.g. "F#4" -> { letter: 'f', accidental: '#', octave: '4' }
-              const match = noteStr.match(/^([A-Ga-g])([#b]?)(\d)$/);
-              if (!match) throw new Error(`Invalid note format: ${noteStr}`);
-              const [, letter, accidental, octave] = match;
-              return `${letter.toLowerCase()}${accidental}/${octave}`;
-            });
+      const notes = buildNotes(measure);
+      drawMeasure({ context, stave, notes, keySignature: previousKeySig });
 
-        const staveNote = new StaveNote({
-          keys,
-          duration: duration,
-          dots: entry.dots || 0
-        });
-
-       // Store accidental info in staveNote for applyAccidentals
-        if (!isRest) {
-          keys.forEach((key, i) => {
-            const accidentalChar = key.length === 4 ? key[1] : null;
-            if (accidentalChar === "#" || accidentalChar === "b") {
-              staveNote.addModifier(new Accidental(accidentalChar), i);
-            }
-          });
-        }
-        for (let i = 0; i < (entry.dots || 0); i++) {
-          Dot.buildAndAttach([staveNote], { all: true });
-        }
-
-        return staveNote;
-      });
-      
-      if (notes.length === 0) {
-        stave.setContext(context).draw();
-      } else {
-        const voice = new Voice();
-        // Disable checking because I can't get it to work with non 4/4 time signatures
-        voice.setMode(Voice.Mode.SOFT);
-        voice.addTickables(notes);
-
-        // Apply accidentals according to the key signature
-        Accidental.applyAccidentals([voice], previousKeySig);
-
-        new Formatter().joinVoices([voice]).format([voice], measureWidth - 20);
-        voice.draw(context, stave);
-      }
-      x += measureWidth + measurePadding; 
+      offset += MEASURE_WIDTH + MEASURE_PADDING;
     });
 
     contextRef.current = context;
@@ -148,7 +155,7 @@ const ScoreRenderer = forwardRef((_, ref) => {
     const context = contextRef.current;
     const stave = activeStaveRef.current;
     if (!context || !stave) return;
-    
+
     const activeMIDINotes = Array.from(activeNotesRef.current);
     if (activeMIDINotes.length === 0) return;
 
@@ -217,10 +224,9 @@ const ScoreRenderer = forwardRef((_, ref) => {
 
   return (
     <div className="bg-white overflow-x-auto">
-      <div ref={containerRef} style={{transform: `scale(${SCALE_FACTOR})`, transformOrigin: 'left top' }} />
+      <div ref={containerRef} style={{ transform: `scale(${SCALE_FACTOR})`, transformOrigin: 'left top' }} />
     </div>
   );
 });
 
 export default ScoreRenderer;
-
