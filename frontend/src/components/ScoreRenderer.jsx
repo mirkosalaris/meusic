@@ -32,6 +32,29 @@ const emptyScore = {
   ]
 };
 
+function midiToVexflowKey(midi) {
+  const name = MIDI_TO_NOTE[midi];
+  if (!name) return null;
+
+  const [letter, octave] = name.length === 3
+    ? [name.slice(0, 2), name[2]]
+    : [name[0], name[1]];
+
+  return {
+    key: `${letter}/${octave}`,
+    accidental: letter.includes('#') ? '#' : null
+  };
+}
+
+function buildChord(keys, accidentals, duration, style) {
+  const chord = new StaveNote({ keys, duration });
+  accidentals.forEach((acc, i) => {
+    if (acc) chord.addModifier(new Accidental(acc), i);
+  });
+  if (style) chord.setStyle(style);
+  return chord;
+}
+
 const ScoreRenderer = forwardRef((_, ref) => {
   const containerRef = useRef(null);
   const activeNotesRef = useRef(new Set());
@@ -164,22 +187,18 @@ const ScoreRenderer = forwardRef((_, ref) => {
     const accidentals = [];
 
     for (const midi of sorted) {
-      const name = MIDI_TO_NOTE[midi];
-      if (!name) continue;
-
-      const [letter, octave] = name.length === 3 ? [name.slice(0, 2), name[2]] : [name[0], name[1]];
-      keys.push(`${letter}/${octave}`);
-      accidentals.push(letter.includes("#") ? "#" : null);
+      const result = midiToVexflowKey(midi);
+      if (!result) continue;
+      keys.push(result.key);
+      accidentals.push(result.accidental);
     }
 
-    const chord = new StaveNote({
+    const chord = buildChord(
       keys,
-      duration: 'q'
-    }).setStyle({ fillStyle: 'red', strokeStyle: 'red' }); // Distinct color for overlay
-
-    accidentals.forEach((acc, i) => {
-      if (acc) chord.addModifier(new Accidental(acc), i);
-    });
+      accidentals,
+      'q',
+      { fillStyle: 'red', strokeStyle: 'red' } // Distinct color for overlay
+    );
 
     Formatter.FormatAndDraw(context, stave, [chord]);
   };
