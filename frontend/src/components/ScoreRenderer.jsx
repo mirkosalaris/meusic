@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useImperativeHandle, forwardRef } from 'react';
-import { Renderer, Stave, StaveNote, Accidental, Formatter, Dot} from 'vexflow';
+import { Renderer, Stave, StaveNote, Accidental, Formatter, Dot, Voice} from 'vexflow';
 
 const SCALE_FACTOR = 2.0;
 const MEASURE_WIDTH = 150;
@@ -21,10 +21,13 @@ const MIDI_TO_NOTE = {
 const emptyScore = {
   version: "0.0",
   title: "empty",
+  bpm: 120,
   measures: [
     {
-      time_signature: "1/4",
-      contents: []
+      key_signature: "C",
+      time_signature: null,
+      contents: [],
+      free_time: true
     }
   ]
 };
@@ -66,40 +69,54 @@ const ScoreRenderer = forwardRef((_, ref) => {
     renderer.resize(totalWidth+firstMeasureOffset, staveHeight);
 
     let previousTimeSig = null;
+    let previousKeySig = null;
 
     score.measures.forEach((measure, index) => {
-      const timeSig = measure.time_signature || previousTimeSig || '4/4';
+      const timeSig = measure.time_signature || previousTimeSig || null;
 
       const stave = new Stave(x, y, measureWidth);
       if (index === 0) {
         activeStaveRef.current = stave; // store the first stave as the one to draw on
         stave.addClef('treble'); // only first measure gets clef
       }
-      if (timeSig != previousTimeSig) { // only add time signature if it changed
+      if (measure.key_signature && measure.key_signature !== previousKeySig) {
+        stave.addKeySignature(measure.key_signature);
+        previousKeySig = measure.key_signature;
+      }
+      if (timeSig != null && timeSig != previousTimeSig) { // only add time signature if it changed
         stave.addTimeSignature(timeSig);
         previousTimeSig = timeSig;
       }
       stave.setContext(context).draw();
 
       const notes = measure.contents.map(entry => {
-        const keys = entry.notes.map(note => {
-          const [letter, octave] = note.length === 3 ? [note.slice(0, 2), note[2]] : [note[0], note[1]];
-          return `${letter}/${octave}`;
-        });
+        const isRest = entry.notes.length === 0;
+        const duration = isRest ? `${entry.duration}r` : entry.duration;
+        const keys = isRest
+          ? ['b/4'] // dummy note for rests
+          : entry.notes.map(noteStr => {
+              // Parse note: e.g. "F#4" -> { letter: 'f', accidental: '#', octave: '4' }
+              const match = noteStr.match(/^([A-Ga-g])([#b]?)(\d)$/);
+              if (!match) throw new Error(`Invalid note format: ${noteStr}`);
+              const [, letter, accidental, octave] = match;
+              return `${letter.toLowerCase()}${accidental}/${octave}`;
+            });
 
         const staveNote = new StaveNote({
           keys,
-          duration: entry.duration,
+          duration: duration,
           dots: entry.dots || 0
         });
 
-        keys.forEach((key, i) => {
-          const accidentalChar = key.length === 4 ? key[1] : null;
-          if (accidentalChar === "#" || accidentalChar === "b") {
-            staveNote.addModifier(new Accidental(accidentalChar), i);
-          }
-        });
-
+       // Store accidental info in staveNote for applyAccidentals
+        if (!isRest) {
+          keys.forEach((key, i) => {
+            const accidentalChar = key.length === 4 ? key[1] : null;
+            if (accidentalChar === "#" || accidentalChar === "b") {
+              staveNote.addModifier(new Accidental(accidentalChar), i);
+            }
+          });
+        }
         for (let i = 0; i < (entry.dots || 0); i++) {
           Dot.buildAndAttach([staveNote], { all: true });
         }
@@ -110,7 +127,16 @@ const ScoreRenderer = forwardRef((_, ref) => {
       if (notes.length === 0) {
         stave.setContext(context).draw();
       } else {
-        Formatter.FormatAndDraw(context, stave, notes);
+        const voice = new Voice();
+        // Disable checking because I can't get it to work with non 4/4 time signatures
+        voice.setMode(Voice.Mode.SOFT);
+        voice.addTickables(notes);
+
+        // Apply accidentals according to the key signature
+        Accidental.applyAccidentals([voice], previousKeySig);
+
+        new Formatter().joinVoices([voice]).format([voice], measureWidth - 20);
+        voice.draw(context, stave);
       }
       x += measureWidth + measurePadding; 
     });
