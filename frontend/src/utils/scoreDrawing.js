@@ -6,6 +6,15 @@ export const MEASURE_WIDTH = 150;
 export const MEASURE_PADDING = 2;
 export const STAVE_HEIGHT = 250;
 
+function resizeRenderer(renderer, scoreWidth, viewportWidth) {
+	// Compute initial offset so first measure is centered in view
+	// (notice: not accounting for measure expansions for clef and time/key signatures)
+	const firstMeasureOffset = Math.max(0, (viewportWidth / SCALE_FACTOR / 2) - (MEASURE_WIDTH / 2));
+
+	renderer.resize(scoreWidth + firstMeasureOffset, STAVE_HEIGHT);
+	return firstMeasureOffset;
+}
+
 export function initRenderer(container, score, viewportWidth) {
 	const renderer = new Renderer(container, Renderer.Backends.SVG);
 	const context = renderer.getContext();
@@ -15,12 +24,9 @@ export function initRenderer(container, score, viewportWidth) {
 	context.scale(1, 1);
 
 	// total width = all measures in a row
-	const totalWidth = score.measures.length * (MEASURE_WIDTH + MEASURE_PADDING);
+	const scoreWidth = score.measures.length * (MEASURE_WIDTH + MEASURE_PADDING);
 
-	// Compute initial offset so first measure is centered in view
-	const firstMeasureOffset = Math.max(0, (viewportWidth / SCALE_FACTOR / 2) - (MEASURE_WIDTH / 2));
-
-	renderer.resize(totalWidth + firstMeasureOffset, STAVE_HEIGHT);
+	const firstMeasureOffset = resizeRenderer(renderer, scoreWidth, viewportWidth);
 	return { renderer, context, firstMeasureOffset };
 }
 
@@ -34,6 +40,13 @@ export function createStave(x, y, width, { index, measure, previousKeySig, previ
 	if (measure.time_signature && measure.time_signature !== previousTimeSig) {
 		stave.addTimeSignature(measure.time_signature);
 	}
+
+	// mainly useful for the first measure (to account for clef and time/key signatures)
+	// "extra" is the difference between the X coordinate of the first note and the X coordinate of the stave
+	const extra = stave.getNoteStartX() - stave.getX();
+	const adjustedWidth = MEASURE_WIDTH + extra;
+	stave.setWidth(adjustedWidth);
+
 	stave.setContext(context).draw();
 	return stave;
 }
@@ -98,15 +111,26 @@ export function drawMeasure({ context, stave, notes, keySignature }) {
 	}
 };
 
+/**
+ * Draws an entire score on a VexFlow renderer.
+ *
+ * @param {Object} params
+ * @param {HTMLElement} params.container - DOM element to render into (emptied before drawing).
+ * @param {Object} params.score - Score JSON (must include `measures` array).
+ * @param {number} params.viewportWidth - Current viewport width in pixels.
+ * @param {React.RefObject} params.activeStaveRef - Ref to store the active stave.
+ * @param {React.RefObject} params.contextRef - Ref to store the VexFlow rendering context.
+ */
 export function drawScore({ container, score, viewportWidth, activeStaveRef, contextRef }) {
 	if (!container) return;
 	container.innerHTML = '';
 
-	const { renderer: _, context, firstMeasureOffset } = initRenderer(container, score, viewportWidth);
+	const { renderer, context, firstMeasureOffset } = initRenderer(container, score, viewportWidth);
 
 	let offset = firstMeasureOffset;
 	let previousTimeSig = null;
 	let previousKeySig = null;
+	let scoreWidth = 0;
 
 	score.measures.forEach((measure, index) => {
 		const stave = createStave(offset, 0, MEASURE_WIDTH, { index, measure, previousKeySig, previousTimeSig, context });
@@ -119,9 +143,11 @@ export function drawScore({ container, score, viewportWidth, activeStaveRef, con
 		const notes = buildNotes(measure);
 		drawMeasure({ context, stave, notes, keySignature: previousKeySig });
 
-		offset += MEASURE_WIDTH + MEASURE_PADDING;
+		offset += stave.getWidth() + MEASURE_PADDING;
+		scoreWidth += stave.getWidth() + MEASURE_PADDING;
 	});
 
+	resizeRenderer(renderer, scoreWidth, viewportWidth);
 	contextRef.current = context;
 };
 
