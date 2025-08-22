@@ -41,13 +41,7 @@ export function createStave(x, y, width, { index, measure, previousKeySig, previ
 		stave.addTimeSignature(measure.time_signature);
 	}
 
-	// mainly useful for the first measure (to account for clef and time/key signatures)
-	// "extra" is the difference between the X coordinate of the first note and the X coordinate of the stave
-	const extra = stave.getNoteStartX() - stave.getX();
-	const adjustedWidth = MEASURE_WIDTH + extra;
-	stave.setWidth(adjustedWidth);
-
-	stave.setContext(context).draw();
+	// do not set context and draw. It's done inside "drawMeasure"
 	return stave;
 }
 
@@ -106,7 +100,20 @@ export function drawMeasure({ context, stave, notes, keySignature }) {
 		// Apply accidentals according to the key signature
 		Accidental.applyAccidentals([voice], keySignature);
 
-		new Formatter().joinVoices([voice]).format([voice], MEASURE_WIDTH - 20);
+		const formatter = new Formatter();
+
+		// "extra" space needed for clef and time/key signatures
+		const extra = stave.getNoteStartX() - stave.getX();
+
+		const notesMinWidth = Math.max(formatter.preCalculateMinTotalWidth([voice]), MEASURE_WIDTH - extra);;
+		formatter.joinVoices([voice]).format([voice], notesMinWidth); // temporary width
+		
+		const lastNoteX = voice.getTickables().at(-1).getAbsoluteX();
+		// Add 40 to the final width, found by trial and error
+		// to avoid cutting the last note
+		stave.setWidth(Math.max(MEASURE_WIDTH, lastNoteX+extra+40));
+		stave.setContext(context).draw();
+
 		voice.draw(context, stave);
 	}
 };
