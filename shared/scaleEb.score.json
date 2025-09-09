@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "title": "Eb Major Scale",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": null,
+      "free_time": true,
+      "key_signature": "Eb",
+      "contents": [
+        { "time": 0, "notes": ["Eb4"], "duration": "q" },
+        { "time": 1, "notes": ["F4"], "duration": "q" },
+        { "time": 2, "notes": ["G4"], "duration": "q" },
+        { "time": 3, "notes": ["Ab4"], "duration": "q" },
+        { "time": 4, "notes": ["Bb4"], "duration": "q" },
+        { "time": 5, "notes": ["C5"], "duration": "q" },
+        { "time": 6, "notes": ["D5"], "duration": "q" },
+        { "time": 7, "notes": ["Eb5"], "duration": "q" }
+      ]
+    }
+  ]
+}

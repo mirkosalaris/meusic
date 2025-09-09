@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "title": "A Major Scale",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": null,
+      "free_time": true,
+      "key_signature": "A",
+      "contents": [
+        { "time": 0, "notes": ["A4"], "duration": "q" },
+        { "time": 1, "notes": ["B4"], "duration": "q" },
+        { "time": 2, "notes": ["C#5"], "duration": "q" },
+        { "time": 3, "notes": ["D5"], "duration": "q" },
+        { "time": 4, "notes": ["E5"], "duration": "q" },
+        { "time": 5, "notes": ["F#5"], "duration": "q" },
+        { "time": 6, "notes": ["G#5"], "duration": "q" },
+        { "time": 7, "notes": ["A5"], "duration": "q" }
+      ]
+    }
+  ]
+}

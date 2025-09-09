@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "title": "Db Major Scale",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": null,
+      "free_time": true,
+      "key_signature": "Db",
+      "contents": [
+        { "time": 0, "notes": ["Db4"], "duration": "q" },
+        { "time": 1, "notes": ["Eb4"], "duration": "q" },
+        { "time": 2, "notes": ["F4"], "duration": "q" },
+        { "time": 3, "notes": ["Gb4"], "duration": "q" },
+        { "time": 4, "notes": ["Ab4"], "duration": "q" },
+        { "time": 5, "notes": ["Bb4"], "duration": "q" },
+        { "time": 6, "notes": ["C5"], "duration": "q" },
+        { "time": 7, "notes": ["Db5"], "duration": "q" }
+      ]
+    }
+  ]
+}

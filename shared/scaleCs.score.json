@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "title": "C# Major Scale",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": null,
+      "free_time": true,
+      "key_signature": "C#",
+      "contents": [
+        { "time": 0, "notes": ["C#4"], "duration": "q" },
+        { "time": 1, "notes": ["D#4"], "duration": "q" },
+        { "time": 2, "notes": ["E#4"], "duration": "q" },
+        { "time": 3, "notes": ["F#4"], "duration": "q" },
+        { "time": 4, "notes": ["G#4"], "duration": "q" },
+        { "time": 5, "notes": ["A#4"], "duration": "q" },
+        { "time": 6, "notes": ["B#4"], "duration": "q" },
+        { "time": 7, "notes": ["C#5"], "duration": "q" }
+      ]
+    }
+  ]
+}

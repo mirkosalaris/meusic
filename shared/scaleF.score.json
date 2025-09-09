@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "title": "F Major Scale",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": null,
+      "free_time": true,
+      "key_signature": "F",
+      "contents": [
+        { "time": 0, "notes": ["F4"], "duration": "q" },
+        { "time": 1, "notes": ["G4"], "duration": "q" },
+        { "time": 2, "notes": ["A4"], "duration": "q" },
+        { "time": 3, "notes": ["Bb4"], "duration": "q" },
+        { "time": 4, "notes": ["C5"], "duration": "q" },
+        { "time": 5, "notes": ["D5"], "duration": "q" },
+        { "time": 6, "notes": ["E5"], "duration": "q" },
+        { "time": 7, "notes": ["F5"], "duration": "q" }
+      ]
+    }
+  ]
+}

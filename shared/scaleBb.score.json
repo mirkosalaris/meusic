@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "title": "Bb Major Scale",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": null,
+      "free_time": true,
+      "key_signature": "Bb",
+      "contents": [
+        { "time": 0, "notes": ["Bb4"], "duration": "q" },
+        { "time": 1, "notes": ["C5"], "duration": "q" },
+        { "time": 2, "notes": ["D5"], "duration": "q" },
+        { "time": 3, "notes": ["Eb5"], "duration": "q" },
+        { "time": 4, "notes": ["F5"], "duration": "q" },
+        { "time": 5, "notes": ["G5"], "duration": "q" },
+        { "time": 6, "notes": ["A5"], "duration": "q" },
+        { "time": 7, "notes": ["Bb5"], "duration": "q" }
+      ]
+    }
+  ]
+}

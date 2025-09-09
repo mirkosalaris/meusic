@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "title": "C Major Scale",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": null,
+      "free_time": true,
+      "key_signature": "C",
+      "contents": [
+        { "time": 0, "notes": ["C4"], "duration": "q" },
+        { "time": 1, "notes": ["D4"], "duration": "q" },
+        { "time": 2, "notes": ["E4"], "duration": "q" },
+        { "time": 3, "notes": ["F4"], "duration": "q" },
+        { "time": 4, "notes": ["G4"], "duration": "q" },
+        { "time": 5, "notes": ["A4"], "duration": "q" },
+        { "time": 6, "notes": ["B4"], "duration": "q" },
+        { "time": 7, "notes": ["C5"], "duration": "q" }
+      ]
+    }
+  ]
+}

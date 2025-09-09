@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "title": "E Major Scale",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": null,
+      "free_time": true,
+      "key_signature": "E",
+      "contents": [
+        { "time": 0, "notes": ["E4"], "duration": "q" },
+        { "time": 1, "notes": ["F#4"], "duration": "q" },
+        { "time": 2, "notes": ["G#4"], "duration": "q" },
+        { "time": 3, "notes": ["A4"], "duration": "q" },
+        { "time": 4, "notes": ["B4"], "duration": "q" },
+        { "time": 5, "notes": ["C#5"], "duration": "q" },
+        { "time": 6, "notes": ["D#5"], "duration": "q" },
+        { "time": 7, "notes": ["E5"], "duration": "q" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "version": "0.1",
+  "title": "Gb Major Scale",
+  "bpm": 120,
+  "measures": [
+    {
+      "time_signature": null,
+      "free_time": true,
+      "key_signature": "Gb",
+      "contents": [
+        { "time": 0, "notes": ["Gb4"], "duration": "q" },
+        { "time": 1, "notes": ["Ab4"], "duration": "q" },
+        { "time": 2, "notes": ["Bb4"], "duration": "q" },
+        { "time": 3, "notes": ["Cb5"], "duration": "q" },
+        { "time": 4, "notes": ["Db5"], "duration": "q" },
+        { "time": 5, "notes": ["Eb5"], "duration": "q" },
+        { "time": 6, "notes": ["F5"], "duration": "q" },
+        { "time": 7, "notes": ["Gb5"], "duration": "q" }
+      ]
+    }
+  ]
+}
